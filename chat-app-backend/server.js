@@ -1,29 +1,36 @@
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
+const { Socket } = require("socket.io");
 const mongoose = require("mongoose");
-const {Server} = require("socket.io")
 require("dotenv").config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {cors:{origin:"*"}});
+const io = new Socket(server, {
+    cors:{origin:"*"}
+});
 
 //middleware
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.mongo_URI,{
-    useNewUrlParser :true,
+mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser:true,
     useUnifiedTopology: true
 })
-.then(()=>{console.log("MongoDB connection successful")})
-.catch((err)=>{console.log(`Database connection Error:`,err)});
+.then(()=>console.log("DB connection successful"))
+.catch(err=>console.log("DB connection failed", err));
 
-io.on("connection",(socket)=>{
-    console.log("New User Connected", socket.id);
-    socket.on("disconnect", ()=>{console.log("User disconnected", socket.id)});
+io.on("connection", (socket)=>{
+    console.log("User has joined:", socket.id);
+    socket.on("disconnect", ()=>{
+        console.log("User Disconnected:", socket.id);
+    });
 })
 
-const PORT = process.env.PORT || 5000
-server.listen(PORT, ()=> {console.log(`Server running on ${PORT}`)});
+
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, ()=>{
+    console.log(`Server starter on Port ${PORT}`);
+})
